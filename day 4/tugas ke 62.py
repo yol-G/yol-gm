@@ -1,0 +1,71 @@
+import PySimpleGUI as sg
+import os
+
+sg.theme('DarkBlue3')
+
+# First, define the layout in 2 columns
+file_list_column = [
+    [
+        sg.Text("Folder"),
+        sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
+        sg.FolderBrowse(),
+    ],
+    [
+        sg.Listbox(
+            values=[],
+            enable_events=True,
+            size=(40, 20),
+            key="-FILE LIST-",
+        )
+    ],
+]
+
+# For now will only show the name of the file that was chosen
+image_viewer_column = [
+    [sg.Text("Choose an image from the list on the left:")],
+    [sg.Text(size=(40, 1), key="-TOUT-")],
+]
+
+# ----- Full layout -----
+layout = [
+    [
+        sg.Column(file_list_column),
+        sg.VSeperator(),
+        sg.Column(image_viewer_column),
+    ]
+]
+
+window = sg.Window("Image Viewer", layout)
+
+while True:
+    event, values = window.read()
+    if event == sg.WIN_CLOSED:
+        break
+
+    # Folder name was filled in, make a list of files in the folder
+    if event == "-FOLDER-":
+        folder = values["-FOLDER-"]
+        try:
+            # Get list of files in folder
+            file_list = os.listdir(folder)
+        except Exception:
+            file_list = []
+
+        fnames = [
+            f
+            for f in file_list
+            if os.path.isfile(os.path.join(folder, f))
+        ]
+        window["-FILE LIST-"].update(fnames)
+
+    # A file was chosen from the listbox
+    elif event == "-FILE LIST-":
+        try:
+            filename = os.path.join(
+                values["-FOLDER-"], values["-FILE LIST-"][0]
+            )
+            window["-TOUT-"].update(filename)
+        except Exception:
+            pass
+
+window.close()
